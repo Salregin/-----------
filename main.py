@@ -1,7 +1,9 @@
 from pygame import *
+from time import time as timer
+from random import randint
 font.init()
 mixer.init()
-font1 = font.Font(None, 100)
+font1 = font.Font(None, 40)
 
 ping = mixer.Sound("ping.mp3")
 win = mixer.Sound("win.mp3")
@@ -21,6 +23,20 @@ display.set_icon(ball)
 
 clock = time.Clock()
 FPS = 60
+
+score1 = 0
+score2 = 0
+
+ST = timer()
+
+"""НАСТРОЙКИ"""
+
+win_requirement = 3
+ball_cooldown = 1
+players_speed = 5
+ball_speed = 7
+
+"""--------""" 
 
 class GameSprite(sprite.Sprite):
     def __init__(self,sprite,x,y,speed):
@@ -56,8 +72,16 @@ class Player2(GameSprite):
 class Ball(GameSprite):
     def __init__(self,sprite,x,y,speed):
         super().__init__(sprite,x,y,speed)
-        self.Xdir = "Left"
-        self.Ydir = "Down"
+        global score1
+        global score2
+        if score1 > score2:
+            self.Xdir = "Left"
+        else:
+            self.Xdir = "Right"
+        if randint(1,2) == 1:
+            self.Ydir = "Down"
+        else:
+            self.Ydir = "Up"
     def move(self):
         if self.Xdir == "Left":
             self.rect.x -= self.speed
@@ -67,16 +91,16 @@ class Ball(GameSprite):
             self.rect.y += self.speed
         else:
             self.rect.y -= self.speed
-        if self.rect.y > 430:
+        if self.rect.y > 450:
             ping.play()
             self.Ydir = "Up"
-        elif self.rect.y < 15:
+        elif self.rect.y < 0:
             ping.play()
             self.Ydir = "Down"
 
-plr1 = Player1(player1sprite,5,250,5)
-plr2 = Player2(player2sprite,660,250,5)
-bal = Ball(ball,350,250,7)
+plr1 = Player1(player1sprite,5,250,players_speed)
+plr2 = Player2(player2sprite,660,250,players_speed)
+bal = None
 
 while game:
     for i in event.get():
@@ -84,29 +108,41 @@ while game:
             game = False
     if finish == False:
         window.blit(bg,(0,0))
-        bal.reset()
         plr1.reset()
         plr2.reset()
         plr1.move()
         plr2.move()
-        bal.move()
-        if sprite.collide_rect(plr1,bal):
-            ping.play()
-            bal.Xdir = "Right"
-            bal.speed += 1
-        elif sprite.collide_rect(plr2,bal):
-            ping.play()
-            bal.Xdir = "Left"
-        if bal.rect.x < -15:
-            text_win = font1.render("Player2 won!",1,(255,150,0))
-            window.blit(text_win,(150,200))
-            win.play()
+        if bal != None:
+            bal.reset()
+            bal.move()
+            if sprite.collide_rect(plr1,bal):
+                ping.play()
+                bal.Xdir = "Right"
+            elif sprite.collide_rect(plr2,bal):
+                ping.play()
+                bal.Xdir = "Left"
+            if bal.rect.x < -15:
+                win.play()
+                bal = None
+                ST =timer()
+                score2 += 1
+            elif bal.rect.x > 700:
+                win.play()
+                bal = None
+                ST = timer()
+                score1 += 1
+        else:
+            if timer()-ST >= ball_cooldown:
+                bal = Ball(ball,350,250,ball_speed)
+        if score1 >= win_requirement:
             finish = True
-        elif bal.rect.x > 700:
-            text_win = font1.render("Player1 won!",1,(255,200,0))
-            window.blit(text_win,(150,200))
-            win.play()
+            text_win = font1.render("Player1 has won!",1,(255,255,0))
+            window.blit(text_win,(200,155))
+        elif score2 >= win_requirement:
             finish = True
+            text_win = font1.render("Player2 has won!",1,(255,155,0))
+            window.blit(text_win,(200,155))
+        text_info = font1.render(str(score1)+" : "+str(score2),1,(0,0,0))
+        window.blit(text_info,(320,0))
         display.update()
         clock.tick(FPS)
-        
