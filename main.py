@@ -227,9 +227,11 @@ while game:
             if sprite.collide_rect(plr1,bal):
                 ping.play()
                 bal.Xdir = "Right"
+                bal.speed += 1
             elif sprite.collide_rect(plr2,bal):
                 ping.play()
                 bal.Xdir = "Left"
+                bal.speed += 1
             if bal.rect.x < -15:
                 win.play()
                 bal = None
