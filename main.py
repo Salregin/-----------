@@ -125,6 +125,65 @@ class Player2(GameSprite):
         elif timer() - self.bonustimer >= 2 and self.bonustimer != 0:
             self.img.fill((155,53,51))
 
+class Bot(Player2):
+    def __init__(self,sprite,x,y,speed):
+        super().__init__(sprite,x,y,speed)
+        self.YDir = "Up"
+    def move(self):
+        global bal
+        global bonusbal
+        if bal != None:
+            if bal.Xdir == "Right":
+                if bal.rect.y > self.rect.centery:
+                    self.YDir = "Down"
+                elif bal.rect.y < self.rect.centery:
+                    self.YDir = "Up"
+            else:
+                if bonusbal != None:
+                    if bonusbal.Xdir == "Right":
+                        if bonusbal.rect.y > self.rect.centery:
+                            self.YDir = "Down"
+                        elif bonusbal.rect.y < self.rect.centery:
+                            self.YDir = "Up"
+            if self.bonus == True:
+                self.img = player2spritebonus
+                boost.play()
+                self.img.fill((255,153,51))
+                bb = self.rect.x
+                bby = self.rect.y
+                self.rect = self.img.get_rect()
+                self.rect.x = bb
+                self.rect.y = bby
+                self.bonustimer = timer()
+                self.bonus = False
+            if timer() - self.bonustimer >= 3 and self.bonustimer != 0:
+                self.img = player2sprite
+                bb = self.rect.x
+                bby = self.rect.y
+                self.rect = self.img.get_rect()
+                self.rect.x = bb
+                self.rect.y = bby
+                self.bonustimer = 0
+            elif timer() - self.bonustimer >= 2 and self.bonustimer != 0:
+                self.img.fill((155,53,51))
+        else:
+            if bonusbal != None:
+                if bonusbal.Xdir == "Right":
+                    if bonusbal.rect.y > self.rect.centery:
+                        self.YDir = "Down"
+                    elif bonusbal.rect.y < self.rect.centery:
+                        self.YDir = "Up"
+        if self.YDir == "Down":
+            self.rect.y += self.speed
+        else:
+            self.rect.y -= self.speed
+        if self.rect.y < 15:
+            self.rect.y = 15
+        if self.rect.y > 340:
+            self.rect.y = 340
+
+
+
 class Ball(GameSprite):
     def __init__(self,sprite,x,y,speed):
         super().__init__(sprite,x,y,speed)
@@ -189,7 +248,7 @@ class BoostBall(GameSprite):
             self.Xdir = "Left"
 
 plr1 = Player1(player1sprite,5,250,players_speed)
-plr2 = Player2(player2sprite,660,250,players_speed)
+plr2 = Bot(player2sprite,660,250,players_speed)
 bal = None
 bonusbal = None
 
@@ -227,11 +286,9 @@ while game:
             if sprite.collide_rect(plr1,bal):
                 ping.play()
                 bal.Xdir = "Right"
-                bal.speed += 1
             elif sprite.collide_rect(plr2,bal):
                 ping.play()
                 bal.Xdir = "Left"
-                bal.speed += 1
             if bal.rect.x < -15:
                 win.play()
                 bal = None
